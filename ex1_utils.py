@@ -81,7 +81,7 @@ def imDisplay(filename: str, representation: int):
     pass
 
 
-yiq_from_rgb = np.array([[0.299, 0.587, 0.114], [0.596, -0.275, -0.321], [0.212, -0.523, 0.311]])
+yiq_from_rgb = np.array([[0.299, 0.587, 0.114], [0.595716, -0.274453, -0.321263], [0.211456, -0.522591, 0.311135]])
 
 
 def transformRGB2YIQ(imgRGB: np.ndarray) -> np.ndarray:
@@ -106,12 +106,12 @@ def transformRGB2YIQ(imgRGB: np.ndarray) -> np.ndarray:
     # plt.imshow(imgRGB)
     # plt.show()
     # return imgRGB
-    print(imgRGB.dtype)
+    # print(imgRGB.dtype)
     OrigShape = imgRGB.shape
     res = np.dot(imgRGB.reshape(-1, 3), yiq_from_rgb.transpose()).reshape(OrigShape)
-    # plt.imshow((res * 255).astype(np.uint8))
-    # plt.show()
-    return res
+    # We need to multiply by 255.0 and then round to the nearest Integer number (with 'np.rint' func)
+    # and then normalize again (divide by 255.0) in order to allow the image to contain a completely white color (255)
+    return np.rint(res * 255.0) / 255.0
 
 
 def transformYIQ2RGB(imgYIQ: np.ndarray) -> np.ndarray:
@@ -134,6 +134,46 @@ def transformYIQ2RGB(imgYIQ: np.ndarray) -> np.ndarray:
     return res
 
 
+"""
+Histogram Equalization Algorithm:
+    1. Compute the image histogram
+    2. Compute the cumulative histogram
+    3. Normalize the cumulative histogram (divide by the total number of pixels)
+    4. Multiply the normalized cumulative histogram by the maximal gray level value (K-1)
+    5. Round the values to get integers
+    6. Map the intensity values of the image using the result of step 5
+    7. Verify that the minimal value is 0 and that the maximal is K-1,
+        otherwise stretch the result linearly in the range [0,K-1].
+
+How to normalize the cumulative histogram and stretch it as much as possible (0 to 255):
+    The idea is to multiply by 255 the relative position of each color in the original color range. 
+    For example, if the image contains 1/3 pixels in color 137, 1/3 pixels in color 138 and 1/3 pixels in color 139. 
+    Then we get a normalized pdf: pdf [137] = 1/3, pdf [138] = 2/3, pdf [ 139] = 1. 
+    Hence, the original size interval is 3 and:
+        The relative position (in the original interval) of 137 is 0. 
+        The relative position (in the original interval) of 138 is 1/2 
+        The relative position (in the original interval) of 139 is 1.
+    That is, we will need to move color 138 to the relative position 1/2 in the final interval [0,255] which is 127. 
+    (and same for the other colors).
+    We will use the following formula:
+    cdf = 255 * (cdf - np.min(cdf[np.nonzero(cdf)])) / (cdf.max() - np.min(cdf[np.nonzero(cdf)]))
+    When we take the value of the minimum color (regardless of the values 0. 
+    that is, the colors that are not in the image at all)
+"""
+
+
+def hsitogramEq(img: np.ndarray) -> (np.ndarray, np.ndarray, np.ndarray):
+    histOrg, bin = np.histogram(img, 256, [0, 255])
+    cdf = np.cumsum(histOrg)
+    cdf = 255 * (cdf - np.min(cdf[np.nonzero(cdf)])) / (cdf.max() - np.min(cdf[np.nonzero(cdf)]))
+    backup_shape = img.shape
+    flatten_img = list(img.astype(int).flatten())
+    equalized_flatten_img = [cdf[p] for p in flatten_img]
+    img = np.reshape(np.asarray(equalized_flatten_img), backup_shape)
+    histEq, bin = np.histogram(img, 256, [0, 255])
+    return img, histOrg, histEq
+
+
 def hsitogramEqualize(imgOrig: np.ndarray) -> (np.ndarray, np.ndarray, np.ndarray):
     """
         Equalizes the histogram of an image
@@ -146,41 +186,16 @@ def hsitogramEqualize(imgOrig: np.ndarray) -> (np.ndarray, np.ndarray, np.ndarra
     if len(imgOrig.shape) == 3:
         img_as_yiq = transformRGB2YIQ(imgOrig)
         img_as_yiq = 255.0 * img_as_yiq
-        # 1. Compute the image histogram
-        histOrg, bin = np.histogram(img_as_yiq[:, :, 0], 256, [0, 255])
-        # 2. Compute the cumulative histogram
-        cdf = np.cumsum(histOrg)
-        # 3. Normalize the cumulative histogram (divide by the total number of pixels)
-        cdf = cdf / np.sum(histOrg)
-        # 4. Multiply the normalized cumulative histogram by the maximal gray level value (K-1)
-        # 5. Round the values to get integers
-        cdf = np.floor(255 * cdf).astype(np.uint8)
-        # 6. Map the intensity values of the image using the result of step 5
-        backup_shape = img_as_yiq[:, :, 0].shape
-        flatten_img = list(img_as_yiq[:, :, 0].astype(int).flatten())
-        equalized_flatten_img = [cdf[p] for p in flatten_img]
-        img_as_yiq[:, :, 0] = np.reshape(np.asarray(equalized_flatten_img), backup_shape)
-        histEq, bin = np.histogram(img_as_yiq[:, :, 0], 256, [0, 255])
-
+        img_y = img_as_yiq[:, :, 0]
+        img_y_Eq, histOrg, histEq = hsitogramEq(img_y)
+        img_as_yiq[:, :, 0] = img_y_Eq
         imgEq = transformYIQ2RGB(img_as_yiq * 1 / 255)
+        print(imgEq)
         return imgEq, histOrg, histEq
     else:
-        img_as_yiq = 255.0 * imgOrig
-        # 1. Compute the image histogram
-        histOrg, bin = np.histogram(img_as_yiq, 256, [0, 255])
-        # 2. Compute the cumulative histogram
-        cdf = np.cumsum(histOrg)
-        # 3. Normalize the cumulative histogram (divide by the total number of pixels)
-        cdf = cdf / np.sum(histOrg)
-        # 4. Multiply the normalized cumulative histogram by the maximal gray level value (K-1)
-        # 5. Round the values to get integers
-        cdf = np.floor(255 * cdf).astype(np.uint8)
-        # 6. Map the intensity values of the image using the result of step 5
-        backup_shape = img_as_yiq.shape
-        flatten_img = list(img_as_yiq.astype(int).flatten())
-        equalized_flatten_img = [cdf[p] for p in flatten_img]
-        imgEq = np.reshape(np.asarray(equalized_flatten_img), backup_shape)
-        histEq, bin = np.histogram(imgEq, 256, [0, 255])
+        img = 255.0 * imgOrig
+        imgEq, histOrg, histEq = hsitogramEq(img)
+        imgEq = imgEq * 1 / 255
         return imgEq, histOrg, histEq
     pass
 
@@ -191,6 +206,8 @@ def calc_pi(inx: int, z: np.ndarray, hist: np.ndarray) -> int:
     for color in range(z[inx], z[inx + 1] + 1):
         value = value + (color * hist[color])
         sum = sum + hist[color]
+    if sum == 0:
+        return 0
     return value / sum
 
 

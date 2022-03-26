@@ -19,6 +19,7 @@ if __name__ == '__main__':
     # # img_path = 'beach.jpg'
     # # img_path = 'pout.tif'
     # img_path = 'Lenna.png'
+    img_path = 'gray.jpg'
     #
     # # Basic read and display
     # im = imReadAndConvert(img_path, 1)
@@ -26,7 +27,7 @@ if __name__ == '__main__':
     # im = imReadAndConvert(img_path, 2)
     # imDisplay(img_path, LOAD_RGB)
     #
-    # im = imReadAndConvert(img_path, 2)
+    im = imReadAndConvert(img_path, 1)
     # # im = transformRGB2YIQ(im)
     # # im = transformYIQ2RGB(im)
     # imgEq, histOrg, histEq = hsitogramEqualize(im)
@@ -36,14 +37,18 @@ if __name__ == '__main__':
     # # center = (bins[:-1] + bins[1:]) / 2
     # plt.xlim([0, 256])
     # plt.plot(histOrg)
-    # plt.plot(histEq)
-    # plt.title("histOrg / histEq")
+    # plt.title("histOrg")
     # plt.show()
-    # plt.imshow(imgEq)
+    # plt.plot(histEq)
+    # plt.title("histEq")
+    # plt.show()
+    # plt.imshow(imgEq, cmap='gray')
+    # # plt.imshow(imgEq)
     # plt.title("image")
     # plt.show()
-    im = imReadAndConvert('beach.jpg', 1)
-    quantizeImage(im, 255, 1)
+
+    im = imReadAndConvert('dog.jpg', 1)
+    quantizeImage(im, 6, 100)
 
 
 
