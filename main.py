@@ -6,6 +6,7 @@ import cv2
 from matplotlib.pyplot import subplot
 
 from ex1_utils import *
+from gamma import gammaDisplay
 
 
 def print_hi(name):
@@ -25,12 +26,11 @@ def quantizeImageTest(imOrig: np.ndarray, nQuant: int, nIter: int):
     # show result
     if len(image_list[len(image_list) - 1].shape) == 3:
         plt.imshow(image_list[len(image_list) - 1])
-        print(image_list[len(image_list) - 1])
     else:
         plt.imshow(image_list[len(image_list) - 1], cmap='gray')
-        print(image_list[len(image_list) - 1])
     plt.title("newImg")
     plt.show()
+
 
 def hsitogramEqualizeTest(imOrig: np.ndarray):
     imgEq, histOrg, histEq = hsitogramEqualize(imOrig)
@@ -45,6 +45,7 @@ def hsitogramEqualizeTest(imOrig: np.ndarray):
     # plt.imshow(imgEq)
     plt.title("image")
     plt.show()
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -69,5 +70,8 @@ if __name__ == '__main__':
 
     # im = imReadAndConvert('dog.jpg', 2)
     # quantizeImageTest(im, 3, 10)
+
+    # gammaDisplay('fall.jpg', 2)
+    gammaDisplay('Lenna.png', 1)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

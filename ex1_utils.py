@@ -60,7 +60,7 @@ def imDisplay(filename: str, representation: int):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         plt.imshow(img, cmap='gray')
     elif representation == 2:
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # since matplotlib assumes RGB
         plt.imshow(img)
     plt.show()
     pass
@@ -148,7 +148,6 @@ def hsitogramEqualize(imgOrig: np.ndarray) -> (np.ndarray, np.ndarray, np.ndarra
         img_y_Eq, histOrg, histEq = hsitogramEqualizeAlgo(img_y)
         img_as_yiq[:, :, 0] = img_y_Eq
         imgEq = transformYIQ2RGB(img_as_yiq * 1 / 255)
-        print(imgEq)
         return imgEq, histOrg, histEq
     else:
         img = 255.0 * imgOrig
