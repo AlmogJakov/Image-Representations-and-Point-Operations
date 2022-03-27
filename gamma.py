@@ -20,7 +20,7 @@ def on_trackbar(val):
     table = np.array([255 * ((i / 255.0) ** gamma) for i in colors])
     # apply gamma correction using the lookup table
     new_img = cv2.LUT(img, table.astype("uint8"))
-    title = 'Gamma Correction (%.2f)' % float("{:.2f}".format(val / 100.0))
+    title = 'Gamma Correction (current gamma value = %.2f)' % float("{:.2f}".format(val / 100.0))
     cv2.setWindowTitle('Gamma Correction', title)
     cv2.imshow('Gamma Correction', new_img)
 

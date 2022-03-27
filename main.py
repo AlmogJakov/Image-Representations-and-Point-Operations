@@ -68,10 +68,10 @@ if __name__ == '__main__':
     # im = imReadAndConvert(img_path, 2)
     # hsitogramEqualizeTest(im)
 
-    # im = imReadAndConvert('dog.jpg', 2)
-    # quantizeImageTest(im, 3, 10)
+    im = imReadAndConvert('dog.jpg', 2)
+    quantizeImageTest(im, 3, 10)
 
     # gammaDisplay('fall.jpg', 2)
-    gammaDisplay('Lenna.png', 1)
+    # gammaDisplay('Lenna.png', 1)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

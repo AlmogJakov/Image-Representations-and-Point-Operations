@@ -164,13 +164,12 @@ def calc_pi(inx: int, z: np.ndarray, hist: np.ndarray) -> int:
         sum = sum + hist[color]
     if sum == 0:
         return 0
-    return value / sum
+    return np.rint(value / sum)
 
 
 def quantizeImageAlgo(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarray], List[float]):
     # Get histogram
     hist, bin = np.histogram(imOrig, 256, [0, 255])
-    # Init z,p
     z = numpy.append(np.arange(0, 255, 255 / nQuant).astype(int), 255)  # example(2): [0,127,255]
     p = np.zeros(nQuant, dtype=int)  # example(2): [0,0]
     image_list = []
