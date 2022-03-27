@@ -37,24 +37,11 @@ def imReadAndConvert(filename: str, representation: int) -> np.ndarray:
     :param representation: GRAY_SCALE or RGB
     :return: The image object
     """
-
-    # https://stackoverflow.com/questions/51987844/what-is-the-representation-of-rgb-image
-
     img = cv2.imread(filename)  # read in BGR format
     if representation == 1:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     elif representation == 2:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-    # print("rows " + str(img.size))
-    # print("cols " + str(img[0].size))
-
-    if representation == 1:
-        cv2.imwrite("res.jpg", img)
-    elif representation == 2:
-        temp = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-        cv2.imwrite("res.jpg", temp)
-
     img = np.float32(img)
     img = (1 / 255) * img
 
@@ -68,9 +55,6 @@ def imDisplay(filename: str, representation: int):
     :param representation: GRAY_SCALE or RGB
     :return: None
     """
-
-    # https://stackoverflow.com/questions/52333972/opencv-convert-image-to-grayscale-and-display-using-matplotlib-gives-strange-co
-
     img = cv2.imread(filename)  # read in BGR format
     if representation == 1:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -91,23 +75,6 @@ def transformRGB2YIQ(imgRGB: np.ndarray) -> np.ndarray:
     :param imgRGB: An Image in RGB
     :return: A YIQ in image color space
     """
-
-    # (AB)^T = B^T * A^T
-
-    # https://stackoverflow.com/questions/61348558/rgb-to-yiq-and-back-in-python
-    # https://levelup.gitconnected.com/introduction-to-histogram-equalization-for-digital-image-enhancement-420696db9e43
-
-    # original_dimensions = imgRGB.shape
-    # yiq = np.array([[0.299, 0.587, 0.114], [0.596, -0.275, -0.321], [0.212, -0.523, 0.311]])
-    # imgRGB = imgRGB.reshape(-1, 3)
-    # # https://stackoverflow.com/questions/24560298/python-numpy-valueerror-operands-could-not-be-broadcast-together-with-shapes
-    # # imgRGB = imgRGB * yiq
-    # imgRGB = numpy.dot(imgRGB, yiq.transpose())
-    # imgRGB = imgRGB.reshape(original_dimensions)
-    # plt.imshow(imgRGB)
-    # plt.show()
-    # return imgRGB
-    # print(imgRGB.dtype)
     backup_shape = imgRGB.shape
     res = np.dot(imgRGB.reshape(-1, 3), yiq_from_rgb.transpose()).reshape(backup_shape)
     # We need to multiply by 255.0 and then round to the nearest Integer number (with 'np.rint' func)
@@ -121,13 +88,6 @@ def transformYIQ2RGB(imgYIQ: np.ndarray) -> np.ndarray:
     :param imgYIQ: An Image in YIQ
     :return: A RGB in image color space
     """
-    # original_dimensions = imgYIQ.shape
-    # yiq_inversed = np.linalg.inv(np.array([[0.299, 0.587, 0.144], [0.596, -0.275, -0.321], [0.212, -0.523, 0.311]]))
-    # imgYIQ = imgYIQ.reshape(-1, 3)
-    # # https://stackoverflow.com/questions/24560298/python-numpy-valueerror-operands-could-not-be-broadcast-together-with-shapes
-    # # imgRGB = imgRGB * yiq
-    # imgYIQ = numpy.dot(imgYIQ, yiq_inversed.transpose())
-    # imgYIQ = imgYIQ.reshape(original_dimensions)
     backup_shape = imgYIQ.shape
     res = np.dot(imgYIQ.reshape(-1, 3), np.linalg.inv(yiq_from_rgb).transpose()).reshape(backup_shape)
     # We need to multiply by 255.0 and then round to the nearest Integer number (with 'np.rint' func)
@@ -181,9 +141,6 @@ def hsitogramEqualize(imgOrig: np.ndarray) -> (np.ndarray, np.ndarray, np.ndarra
         :param imgOrig: Original Histogram
         :ret
     """
-
-    # https://towardsdatascience.com/histogram-equalization-a-simple-way-to-improve-the-contrast-of-your-image-bcd66596d815
-    # https://stackoverflow.com/questions/61178379/how-to-do-histogram-equalization-without-using-cv2-equalizehist
     if len(imgOrig.shape) == 3:
         img_as_yiq = transformRGB2YIQ(imgOrig)
         img_as_yiq = 255.0 * img_as_yiq

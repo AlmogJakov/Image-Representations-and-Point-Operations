@@ -23,10 +23,28 @@ def quantizeImageTest(imOrig: np.ndarray, nQuant: int, nIter: int):
     plt.show()
 
     # show result
-    plt.imshow(image_list[len(image_list) - 1], cmap='gray')
+    if len(image_list[len(image_list) - 1].shape) == 3:
+        plt.imshow(image_list[len(image_list) - 1])
+        print(image_list[len(image_list) - 1])
+    else:
+        plt.imshow(image_list[len(image_list) - 1], cmap='gray')
+        print(image_list[len(image_list) - 1])
     plt.title("newImg")
     plt.show()
 
+def hsitogramEqualizeTest(imOrig: np.ndarray):
+    imgEq, histOrg, histEq = hsitogramEqualize(imOrig)
+    plt.xlim([0, 256])
+    plt.plot(histOrg)
+    plt.title("histOrg")
+    plt.show()
+    plt.plot(histEq)
+    plt.title("histEq")
+    plt.show()
+    plt.imshow(imgEq, cmap='gray')
+    # plt.imshow(imgEq)
+    plt.title("image")
+    plt.show()
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -34,36 +52,22 @@ if __name__ == '__main__':
     # print("Your OpenCV version is: " + cv2.__version__)
     # # img_path = 'beach.jpg'
     # # img_path = 'pout.tif'
-    # img_path = 'Lenna.png'
-    img_path = 'gray.jpg'
-    #
+    img_path = 'Lenna.png'
+    # img_path = 'gray.jpg'
+
     # # Basic read and display
     # im = imReadAndConvert(img_path, 1)
     # imDisplay(img_path, LOAD_GRAY_SCALE)
     # im = imReadAndConvert(img_path, 2)
     # imDisplay(img_path, LOAD_RGB)
-    #
-    im = imReadAndConvert(img_path, 1)
+
     # # im = transformRGB2YIQ(im)
     # # im = transformYIQ2RGB(im)
-    # imgEq, histOrg, histEq = hsitogramEqualize(im)
-    #
-    # # plt.plot()
-    # # width = 0.7 * (bins[1] - bins[0])
-    # # center = (bins[:-1] + bins[1:]) / 2
-    # plt.xlim([0, 256])
-    # plt.plot(histOrg)
-    # plt.title("histOrg")
-    # plt.show()
-    # plt.plot(histEq)
-    # plt.title("histEq")
-    # plt.show()
-    # plt.imshow(imgEq, cmap='gray')
-    # # plt.imshow(imgEq)
-    # plt.title("image")
-    # plt.show()
 
-    im = imReadAndConvert('DogColored.jpg', 2)
-    quantizeImageTest(im, 3, 10)
+    # im = imReadAndConvert(img_path, 2)
+    # hsitogramEqualizeTest(im)
+
+    # im = imReadAndConvert('dog.jpg', 2)
+    # quantizeImageTest(im, 3, 10)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
