@@ -7,9 +7,25 @@ from matplotlib.pyplot import subplot
 
 from ex1_utils import *
 
+
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+
+
+def quantizeImageTest(imOrig: np.ndarray, nQuant: int, nIter: int):
+    image_list, error_list = quantizeImage(imOrig, nQuant, nIter)
+    print(str("image_list size: ") + str(len(image_list)))
+    print(str("error_list size: ") + str(len(error_list)))
+
+    plt.plot(error_list)
+    plt.title("error_list")
+    plt.show()
+
+    # show result
+    plt.imshow(image_list[len(image_list) - 1], cmap='gray')
+    plt.title("newImg")
+    plt.show()
 
 
 # Press the green button in the gutter to run the script.
@@ -47,9 +63,7 @@ if __name__ == '__main__':
     # plt.title("image")
     # plt.show()
 
-    im = imReadAndConvert('dog.jpg', 1)
-    quantizeImage(im, 6, 100)
-
-
+    im = imReadAndConvert('DogColored.jpg', 2)
+    quantizeImageTest(im, 3, 10)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

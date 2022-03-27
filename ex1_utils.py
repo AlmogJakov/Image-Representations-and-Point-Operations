@@ -8,6 +8,7 @@
          ########: ##:::. ##::'######:
         ........::..:::::..:::......::
 """
+import math
 from typing import List
 import cv2
 import matplotlib.pyplot as plt
@@ -107,8 +108,8 @@ def transformRGB2YIQ(imgRGB: np.ndarray) -> np.ndarray:
     # plt.show()
     # return imgRGB
     # print(imgRGB.dtype)
-    OrigShape = imgRGB.shape
-    res = np.dot(imgRGB.reshape(-1, 3), yiq_from_rgb.transpose()).reshape(OrigShape)
+    backup_shape = imgRGB.shape
+    res = np.dot(imgRGB.reshape(-1, 3), yiq_from_rgb.transpose()).reshape(backup_shape)
     # We need to multiply by 255.0 and then round to the nearest Integer number (with 'np.rint' func)
     # and then normalize again (divide by 255.0) in order to allow the image to contain a completely white color (255)
     return np.rint(res * 255.0) / 255.0
@@ -127,11 +128,11 @@ def transformYIQ2RGB(imgYIQ: np.ndarray) -> np.ndarray:
     # # imgRGB = imgRGB * yiq
     # imgYIQ = numpy.dot(imgYIQ, yiq_inversed.transpose())
     # imgYIQ = imgYIQ.reshape(original_dimensions)
-    OrigShape = imgYIQ.shape
-    res = np.dot(imgYIQ.reshape(-1, 3), np.linalg.inv(yiq_from_rgb).transpose()).reshape(OrigShape)
-    # plt.imshow((res * 255).astype(np.uint8))
-    # plt.show()
-    return res
+    backup_shape = imgYIQ.shape
+    res = np.dot(imgYIQ.reshape(-1, 3), np.linalg.inv(yiq_from_rgb).transpose()).reshape(backup_shape)
+    # We need to multiply by 255.0 and then round to the nearest Integer number (with 'np.rint' func)
+    # and then normalize again (divide by 255.0) in order to allow the image to contain a completely white color (255)
+    return np.rint(res * 255.0) / 255.0
 
 
 """
@@ -162,7 +163,7 @@ How to normalize the cumulative histogram and stretch it as much as possible (0 
 """
 
 
-def hsitogramEq(img: np.ndarray) -> (np.ndarray, np.ndarray, np.ndarray):
+def hsitogramEqualizeAlgo(img: np.ndarray) -> (np.ndarray, np.ndarray, np.ndarray):
     histOrg, bin = np.histogram(img, 256, [0, 255])
     cdf = np.cumsum(histOrg)
     cdf = 255 * (cdf - np.min(cdf[np.nonzero(cdf)])) / (cdf.max() - np.min(cdf[np.nonzero(cdf)]))
@@ -187,28 +188,58 @@ def hsitogramEqualize(imgOrig: np.ndarray) -> (np.ndarray, np.ndarray, np.ndarra
         img_as_yiq = transformRGB2YIQ(imgOrig)
         img_as_yiq = 255.0 * img_as_yiq
         img_y = img_as_yiq[:, :, 0]
-        img_y_Eq, histOrg, histEq = hsitogramEq(img_y)
+        img_y_Eq, histOrg, histEq = hsitogramEqualizeAlgo(img_y)
         img_as_yiq[:, :, 0] = img_y_Eq
         imgEq = transformYIQ2RGB(img_as_yiq * 1 / 255)
         print(imgEq)
         return imgEq, histOrg, histEq
     else:
         img = 255.0 * imgOrig
-        imgEq, histOrg, histEq = hsitogramEq(img)
+        imgEq, histOrg, histEq = hsitogramEqualizeAlgo(img)
         imgEq = imgEq * 1 / 255
         return imgEq, histOrg, histEq
     pass
 
 
 def calc_pi(inx: int, z: np.ndarray, hist: np.ndarray) -> int:
-    value = 0
-    sum = 0
+    value = sum = 0
     for color in range(z[inx], z[inx + 1] + 1):
         value = value + (color * hist[color])
         sum = sum + hist[color]
     if sum == 0:
         return 0
     return value / sum
+
+
+def quantizeImageAlgo(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarray], List[float]):
+    # Get histogram
+    hist, bin = np.histogram(imOrig, 256, [0, 255])
+    # Init z,p
+    z = numpy.append(np.arange(0, 255, 255 / nQuant).astype(int), 255)  # example(2): [0,127,255]
+    p = np.zeros(nQuant, dtype=int)  # example(2): [0,0]
+    image_list = []
+    error_list = []
+    for m in range(0, nIter):
+        p = [calc_pi(idx, z, hist) for idx, item in enumerate(p)]
+        z_temp = [((p[idx] + p[idx + 1]) / 2) for idx, item in enumerate(z[1:-1])]  # .copy()
+        z = numpy.append(0, numpy.append(z_temp, 255)).astype(int)
+        error = 0
+        for i in range(0, nQuant):
+            for color in range(z[i], z[i + 1] + 1):
+                error = error + (np.subtract(p[i], color) ** 2 * hist[color])
+        error_list.append(error)
+        backup_shape = imOrig.shape
+        flatten_img = list(imOrig.astype(int).flatten())
+        equalized_flatten_img = [p[int(x / (256 / nQuant))] for x in flatten_img]
+        newImg = np.reshape(np.asarray(equalized_flatten_img), backup_shape)
+        image_list.append(newImg)
+
+    return image_list, error_list
+
+
+def yiqListToRGB(img_as_yiq: np.ndarray, img_y: np.ndarray) -> np.ndarray:
+    img_as_yiq[:, :, 0] = img_y
+    return transformYIQ2RGB(img_as_yiq * 1 / 255)
 
 
 def quantizeImage(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarray], List[float]):
@@ -221,23 +252,17 @@ def quantizeImage(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarr
     """
     if nQuant > 255 or nQuant < 1:
         return
-    imOrig = imOrig * 255.0
-    # Get histogram
-    hist, bin = np.histogram(imOrig, 256, [0, 255])
-    # Init z,p
-    z = numpy.append(np.arange(0, 255, 255 / nQuant).astype(int), 255)  # example(2): [0,127,255]
-    p = np.zeros(nQuant, dtype=int)  # example(2): [0,0]
-    for m in range(0, nIter):
-        p = [calc_pi(idx, z, hist) for idx, item in enumerate(p)]
-        z_temp = [((p[idx] + p[idx + 1]) / 2) for idx, item in enumerate(z[1:-1].copy())]
-        z = numpy.append(0, numpy.append(z_temp, 255)).astype(int)
 
-    # set the new image
-    backup_shape = imOrig.shape
-    flatten_img = list(imOrig.astype(int).flatten())
-    equalized_flatten_img = [p[int(x / (255 / nQuant)) - 1] for x in flatten_img]
-    newImg = np.reshape(np.asarray(equalized_flatten_img), backup_shape)
-    plt.imshow(newImg, cmap='gray')
-    plt.title("newImg")
-    plt.show()
+    if len(imOrig.shape) == 3:
+        img_as_yiq = transformRGB2YIQ(imOrig)
+        img_as_yiq = 255.0 * img_as_yiq
+        img_y = img_as_yiq[:, :, 0]
+        image_list, error_list = quantizeImageAlgo(img_y, nQuant, nIter)
+        image_list = [yiqListToRGB(img_as_yiq, image) for image in image_list]
+        return image_list, error_list
+    else:
+        img = 255.0 * imOrig
+        image_list, error_list = quantizeImageAlgo(img, nQuant, nIter)
+        image_list = [(image * 1 / 255) for image in image_list]
+        return image_list, error_list
     pass
