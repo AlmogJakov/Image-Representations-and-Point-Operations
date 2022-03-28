@@ -49,15 +49,15 @@ def hsitogramEqualizeTest(imOrig: np.ndarray):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    # print_hi('PyCharm')
-    # print("Your OpenCV version is: " + cv2.__version__)
+    print_hi('PyCharm')
+    print("Your OpenCV version is: " + cv2.__version__)
     # # img_path = 'beach.jpg'
     # # img_path = 'pout.tif'
     img_path = 'Lenna.png'
     # img_path = 'gray.jpg'
 
     # # Basic read and display
-    # im = imReadAndConvert(img_path, 1)
+    img = imReadAndConvert(img_path, 2)
     # imDisplay(img_path, LOAD_GRAY_SCALE)
     # im = imReadAndConvert(img_path, 2)
     # imDisplay(img_path, LOAD_RGB)
