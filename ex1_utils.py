@@ -110,11 +110,9 @@ def transformRGB2YIQ(imgRGB: np.ndarray) -> np.ndarray:
     :param imgRGB: An Image in RGB
     :return: A YIQ in image color space
     """
+    yiq_from_rgb = np.array([[0.299, 0.587, 0.114], [0.595716, -0.274453, -0.321263], [0.211456, -0.522591, 0.311135]])
     try:
         backup_shape = imgRGB.shape
-        yiq_from_rgb = np.array([[0.299, 0.587, 0.114],
-                                 [0.595716, -0.274453, -0.321263],
-                                 [0.211456, -0.522591, 0.311135]])
         res = np.dot(imgRGB.reshape(-1, 3), yiq_from_rgb.transpose()).reshape(backup_shape)
         # We need to multiply by 255.0 and then round to the nearest Integer number (with 'np.rint' func) and then
         # normalize again (divide by 255.0) in order to allow the image to contain a completely white color (255)
@@ -137,11 +135,9 @@ def transformYIQ2RGB(imgYIQ: np.ndarray) -> np.ndarray:
     :param imgYIQ: An Image in YIQ
     :return: A RGB in image color space
     """
+    yiq_from_rgb = np.array([[0.299, 0.587, 0.114], [0.595716, -0.274453, -0.321263], [0.211456, -0.522591, 0.311135]])
     try:
         backup_shape = imgYIQ.shape
-        yiq_from_rgb = np.array([[0.299, 0.587, 0.114],
-                                 [0.595716, -0.274453, -0.321263],
-                                 [0.211456, -0.522591, 0.311135]])
         res = np.dot(imgYIQ.reshape(-1, 3), np.linalg.inv(yiq_from_rgb).transpose()).reshape(backup_shape)
         # We need to multiply by 255.0 and then round to the nearest Integer number (with 'np.rint' func) and then
         # normalize again (divide by 255.0) in order to allow the image to contain a completely white color (255)
@@ -327,3 +323,26 @@ Rebuild the images by re-integrating the new Y channel into the original image.
 def __yiqListToRGB(img_as_yiq: np.ndarray, img_y: np.ndarray) -> np.ndarray:
     img_as_yiq[:, :, 0] = img_y
     return transformYIQ2RGB(img_as_yiq)
+
+
+'''
+#################################################################################################################
+################################################# That's it! ####################################################
+#################################################################################################################
+
+░░░░░░░░░░░░░░░░░░░░░░█████████░░░░░░░░░
+░░███████░░░░░░░░░░███▒▒▒▒▒▒▒▒███░░░░░░░
+░░█▒▒▒▒▒▒█░░░░░░░███▒▒▒▒▒▒▒▒▒▒▒▒▒███░░░░
+░░░█▒▒▒▒▒▒█░░░░██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██░░
+░░░░█▒▒▒▒▒█░░░██▒▒▒▒▒██▒▒▒▒▒▒██▒▒▒▒▒███░
+░░░░░█▒▒▒█░░░█▒▒▒▒▒▒████▒▒▒▒████▒▒▒▒▒▒██
+░░░█████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██
+░░░█▒▒▒▒▒▒▒▒▒▒▒▒█▒▒▒▒▒▒▒▒▒█▒▒▒▒▒▒▒▒▒▒▒██
+░██▒▒▒▒▒▒▒▒▒▒▒▒▒█▒▒▒██▒▒▒▒▒▒▒▒▒▒██▒▒▒▒██
+██▒▒▒███████████▒▒▒▒▒██▒▒▒▒▒▒▒▒██▒▒▒▒▒██
+█▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒█▒▒▒▒▒▒████████▒▒▒▒▒▒▒██
+██▒▒▒▒▒▒▒▒▒▒▒▒▒▒█▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██░
+░█▒▒▒███████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██░░░
+░██▒▒▒▒▒▒▒▒▒▒████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒█░░░░░
+░░████████████░░░█████████████████░░░░░░
+'''
