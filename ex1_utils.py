@@ -48,13 +48,16 @@ def imReadAndConvert(filename: str, representation: int) -> np.ndarray:
     :param representation: GRAY_SCALE or RGB
     :return: The image object
     """
+    if representation != 1 and representation != 2:
+        print("Invalid representation value (Mandatory conditions: 1<=representation<=2).")
+        exit(1)
     img = np.array
     try:
         img = cv2.imread(filename)  # read in BGR format
         if representation == 1:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         elif representation == 2:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # since matplotlib assumes RGB
         img = np.float32(img)
         img = (1 / 255) * img
     except (Exception,):
@@ -78,15 +81,17 @@ def imDisplay(filename: str, representation: int):
     :param representation: GRAY_SCALE or RGB
     :return: None
     """
+    if representation != 1 and representation != 2:
+        print("Invalid representation value (Mandatory conditions: 1<=representation<=2).")
+        exit(1)
     try:
-        img = cv2.imread(filename)  # read in BGR format
+        img = imReadAndConvert(filename, representation)
         if representation == 1:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             plt.imshow(img, cmap='gray')
+            plt.show()
         elif representation == 2:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # since matplotlib assumes RGB
             plt.imshow(img)
-        plt.show()
+            plt.show()
     except (Exception,):
         print("An exception occurred: can't open/read file: check file path/integrity")
     pass
