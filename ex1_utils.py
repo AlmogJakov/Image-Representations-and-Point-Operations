@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy
 import matlab
+from bisect import bisect_left
 
 import numpy as np
 
@@ -167,34 +168,63 @@ def calc_pi(inx: int, z: np.ndarray, hist: np.ndarray) -> int:
     return np.rint(value / sum)
 
 
+"""
+'bisect_left' method finds the first position at which an element could be inserted 
+in a given sorted range while maintaining the sorted order.
+After each relocation to the 'p' & 'z' arrays:
+    For each color were using 'bisect_left' method to search the index of the "Container" that represent the new color
+    in the 'z' array (the array that divides the color boundaries).
+    For example, if z = [0 86 167 255] then there are 3 Container (because 4 boundaries represent 3 Containers)
+    and the color 87 belongs to the second container.
+    Hence, bisect_left(z, 87, 1, None) = 2.
+    But the count of the indexes starts from 0 and therefore we subtract 1 from the result.
+    [We start checking from index 1 to the end (none). 
+    The reason we check from index 1 is to avoid getting a negative value in the case of a color with a value of 0]
+"""
+
+
+def increase(first: np.int, second: np.int):
+    first = first + second
+
+
 def quantizeImageAlgo(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarray], List[float]):
-    # Get histogram
-    hist, bin = np.histogram(imOrig, 256, [0, 255])
+    img = 255.0 * imOrig
+    hist, bin = np.histogram(img, 256, [0, 255])
     z = numpy.append(np.arange(0, 255, 255 / nQuant).astype(int), 255)  # example(2): [0,127,255]
     p = np.zeros(nQuant, dtype=int)  # example(2): [0,0]
     image_list = []
     error_list = []
+    bgr_img = cv2.cvtColor(img.astype('uint8'), cv2.COLOR_GRAY2BGR)
+    colors_range = np.array(np.arange(0, 256))
     for m in range(0, nIter):
         p = [calc_pi(idx, z, hist) for idx, item in enumerate(p)]
         z_temp = [((p[idx] + p[idx + 1]) / 2) for idx, item in enumerate(z[1:-1])]  # .copy()
         z = numpy.append(0, numpy.append(z_temp, 255)).astype(int)
-        error = 0
-        for i in range(0, nQuant):
-            for color in range(z[i], z[i + 1] + 1):
-                error = error + (np.subtract(p[i], color) ** 2 * hist[color])
-        error_list.append(error)
-        backup_shape = imOrig.shape
-        flatten_img = list(imOrig.astype(int).flatten())
-        equalized_flatten_img = [p[int(x / (256 / nQuant))] for x in flatten_img]
-        newImg = np.reshape(np.asarray(equalized_flatten_img), backup_shape)
-        image_list.append(newImg)
 
+        # error = 0
+        # for i, color in range(nQuant), range(z[i], z[i + 1] + 1):
+        #     error = error + (np.subtract(p[i], color) ** 2 * hist[color])
+        # error_list.append(error)
+
+        error = 0
+        for i in range(nQuant):
+            for color in range(z[i], z[i + 1] + 1):
+                error += ((p[i] - color) ** 2 * hist[color])
+        error_list.append(error)
+
+        # er = []
+        # [er.append((p[i] - color) ** 2 * hist[color]) for i in range(nQuant) for color in range(z[i], z[i + 1] + 1)]
+        # error_list.append(sum(er))
+
+        look_up_table = np.array([p[bisect_left(z, x, 1, None) - 1] for x in colors_range])
+        newImg = cv2.cvtColor(cv2.LUT(bgr_img, look_up_table.astype("uint8")), cv2.COLOR_BGR2GRAY)
+        image_list.append(newImg * 1 / 255)
     return image_list, error_list
 
 
 def yiqListToRGB(img_as_yiq: np.ndarray, img_y: np.ndarray) -> np.ndarray:
     img_as_yiq[:, :, 0] = img_y
-    return transformYIQ2RGB(img_as_yiq * 1 / 255)
+    return transformYIQ2RGB(img_as_yiq)
 
 
 def quantizeImage(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarray], List[float]):
@@ -210,14 +240,10 @@ def quantizeImage(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarr
 
     if len(imOrig.shape) == 3:
         img_as_yiq = transformRGB2YIQ(imOrig)
-        img_as_yiq = 255.0 * img_as_yiq
-        img_y = img_as_yiq[:, :, 0]
-        image_list, error_list = quantizeImageAlgo(img_y, nQuant, nIter)
+        image_list, error_list = quantizeImageAlgo(img_as_yiq[:, :, 0], nQuant, nIter)
         image_list = [yiqListToRGB(img_as_yiq, image) for image in image_list]
         return image_list, error_list
     else:
-        img = 255.0 * imOrig
-        image_list, error_list = quantizeImageAlgo(img, nQuant, nIter)
-        image_list = [(image * 1 / 255) for image in image_list]
+        image_list, error_list = quantizeImageAlgo(imOrig, nQuant, nIter)
         return image_list, error_list
     pass
