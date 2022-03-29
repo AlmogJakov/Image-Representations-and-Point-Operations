@@ -57,7 +57,7 @@ def imReadAndConvert(filename: str, representation: int) -> np.ndarray:
         if representation == 1:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         elif representation == 2:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # since matplotlib assumes RGB
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # since matplotlib assumes RGB
         img = np.float32(img)
         img = (1 / 255) * img
     except (Exception,):
@@ -103,6 +103,27 @@ def imDisplay(filename: str, representation: int):
 #################################################################################################################
 '''
 
+'''
+
+Given the red (R), green (G), and blue (B) pixel components of an RGB color image,
+the corresponding luminance (Y), and the chromaticity components (I and Q) in the YIQ color space are
+linearly related as follows:
+
+  _ _       __                   __     _ _
+ | Y |     | 0.299,  0.587,  0.114 |   | R |
+ |   |     |                       |   |   |
+ | I |  =  | 0.596, -0.275, -0.321 | X | G |
+ |   |     |                       |   |   |
+ | Q |     | 0.212, -0.523,  0.311 |   | B |
+ |_ _|     |__                   __|   |_ _|
+ 
+ Explanation:
+    We will first flatten the matrix so that we can get an order matrix (X, 3). 
+    And so we can make a multiplication to the right of each pixel in the transpose matrix 
+    of the transition matrix [which is an order (3, 3)].
+    In this way we will get the same result obtained from performing the formula above for each individual pixel.
+'''
+
 
 def transformRGB2YIQ(imgRGB: np.ndarray) -> np.ndarray:
     """
@@ -110,7 +131,7 @@ def transformRGB2YIQ(imgRGB: np.ndarray) -> np.ndarray:
     :param imgRGB: An Image in RGB
     :return: A YIQ in image color space
     """
-    yiq_from_rgb = np.array([[0.299, 0.587, 0.114], [0.595716, -0.274453, -0.321263], [0.211456, -0.522591, 0.311135]])
+    yiq_from_rgb = np.array([[0.299, 0.587, 0.114], [0.596, -0.275, -0.321], [0.212, -0.523, 0.311]])
     try:
         backup_shape = imgRGB.shape
         res = np.dot(imgRGB.reshape(-1, 3), yiq_from_rgb.transpose()).reshape(backup_shape)
@@ -127,6 +148,24 @@ def transformRGB2YIQ(imgRGB: np.ndarray) -> np.ndarray:
 ########################################### transformYIQ2RGB METHOD #############################################
 #################################################################################################################
 '''
+'''
+
+Given the luminance (Y) and the chromaticity (I and Q) pixel components of an YIQ color image,
+the corresponding red (R), green (G), and blue (B) pixel components in the RGB color space are
+linearly related as follows:
+
+  _ _       __                   __ -1    _ _
+ | R |     | 0.299,  0.587,  0.114 |     | Y |
+ |   |     |                       |     |   |
+ | G |  =  | 0.596, -0.275, -0.321 |  X  | I |
+ |   |     |                       |     |   |
+ | B |     | 0.212, -0.523,  0.311 |     | Q |
+ |_ _|     |__                   __|     |_ _|
+ 
+! Note the marking (-1) that expresses an inverted matrix !
+
+Explanation: Same as written in the 'transformRGB2YIQ' method above.
+'''
 
 
 def transformYIQ2RGB(imgYIQ: np.ndarray) -> np.ndarray:
@@ -135,7 +174,7 @@ def transformYIQ2RGB(imgYIQ: np.ndarray) -> np.ndarray:
     :param imgYIQ: An Image in YIQ
     :return: A RGB in image color space
     """
-    yiq_from_rgb = np.array([[0.299, 0.587, 0.114], [0.595716, -0.274453, -0.321263], [0.211456, -0.522591, 0.311135]])
+    yiq_from_rgb = np.array([[0.299, 0.587, 0.114], [0.596, -0.275, -0.321], [0.212, -0.523, 0.311]])
     try:
         backup_shape = imgYIQ.shape
         res = np.dot(imgYIQ.reshape(-1, 3), np.linalg.inv(yiq_from_rgb).transpose()).reshape(backup_shape)
