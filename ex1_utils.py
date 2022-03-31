@@ -60,6 +60,7 @@ def imReadAndConvert(filename: str, representation: int) -> np.ndarray:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # since matplotlib assumes RGB
         img = np.float32(img)
         img = (1 / 255) * img
+        img = np.float32(img)
     except (Exception,):
         print("An exception occurred: can't open/read file: check file path/integrity")
         exit(1)
@@ -180,7 +181,7 @@ def transformYIQ2RGB(imgYIQ: np.ndarray) -> np.ndarray:
         res = np.dot(imgYIQ.reshape(-1, 3), np.linalg.inv(yiq_from_rgb).transpose()).reshape(backup_shape)
         # We need to multiply by 255.0 and then round to the nearest Integer number (with 'np.rint' func) and then
         # normalize again (divide by 255.0) in order to allow the image to contain a completely white color (255)
-        return np.rint(res * 255.0) / 255.0
+        return np.clip(np.rint(res * 255.0) / 255.0, 0, 1)
     except (Exception,):
         print("An exception occurred: can't convert the image from RGB to YIQ")
         exit(1)
@@ -217,6 +218,8 @@ How to normalize the cumulative histogram and stretch it as much as possible (0 
     cdf = 255 * (cdf - np.min(cdf[np.nonzero(cdf)])) / (cdf.max() - np.min(cdf[np.nonzero(cdf)]))
     When we take the value of the minimum color (regardless of the values 0. 
     that is, the colors that are not in the image at all)
+    
+    # TODO: can use 'equalized_flatten_img = cv2.LUT(flatten_img, look_up_table.astype("uint8"))'
 """
 
 
@@ -224,10 +227,10 @@ def __hsitogramEqualizeAlgo(imOrig: np.ndarray) -> (np.ndarray, np.ndarray, np.n
     img = (255.0 * imOrig).astype('uint8')
     histOrg, bin = np.histogram(img, 256, [0, 255])
     cdf = np.cumsum(histOrg)
-    cdf = 255 * (cdf - np.min(cdf[np.nonzero(cdf)])) / (cdf.max() - np.min(cdf[np.nonzero(cdf)]))
+    look_up_table = 255 * (cdf - np.min(cdf[np.nonzero(cdf)])) / (cdf.max() - np.min(cdf[np.nonzero(cdf)]))
     backup_shape = img.shape
     flatten_img = list(img.astype(int).flatten())
-    equalized_flatten_img = [cdf[p] for p in flatten_img]
+    equalized_flatten_img = [look_up_table[p] for p in flatten_img]
     img = np.reshape(np.asarray(equalized_flatten_img), backup_shape)
     histEq, bin = np.histogram(img, 256, [0, 255])
     return img * 1 / 255, histOrg, histEq
@@ -276,6 +279,12 @@ After each relocation to the 'p' & 'z' arrays:
     But the count of the indexes starts from 0 and therefore we subtract 1 from the result.
     [We start checking from index 1 to the end (none). 
     The reason we check from index 1 is to avoid getting a negative value in the case of a color with a value of 0]
+    
+Calculation of the error (in each iteration):
+    error = 0
+    for i in range(nQuant):
+              for color in range(z[i], z[i + 1] + 1):
+                  error += ((p[i] - color) ** 2 * hist[color])
 """
 
 
@@ -288,17 +297,17 @@ def __quantizeImageAlgo(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np
     error_list = []
     colors_range = np.array(np.arange(0, 256))
     for _ in range(nIter):
-        # calculate z,p
+        # Calculate the new z & p values
         p = [__calc_pi(idx, z, hist) for idx, item in enumerate(p)]
         z_temp = [((p[idx] + p[idx + 1]) / 2) for idx, item in enumerate(z[1:-1])]  # .copy()
         z = numpy.append(0, numpy.append(z_temp, 255)).astype(int)
-        # calculate the error
-        error = 0
-        for i in range(nQuant):
-            for color in range(z[i], z[i + 1] + 1):
-                error += ((p[i] - color) ** 2 * hist[color])
-        error_list.append(error)
-        # calculate the new image
+        # Calculate & add the error
+        nQuant_error = np.arange(0, nQuant)
+        error = [np.dot((np.arange(z[i], z[i + 1] + 1) - p[i]) ** 2, hist[z[i]:z[i + 1] + 1]) for i in nQuant_error]
+        if len(error_list) > 0 and (error_list[len(error_list)-1] - np.array(error).sum()) < 0.00001:
+            break
+        error_list.append(np.array(error).sum())
+        # Calculate & add the new image
         look_up_table = np.array([p[bisect_left(z, x, 1, None) - 1] for x in colors_range])
         newImg = cv2.LUT(img, look_up_table.astype("uint8"))
         image_list.append(newImg * 1 / 255)
@@ -338,15 +347,18 @@ def quantizeImage(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarr
 '''
 __calc_pi method:
 Auxiliary method to '__ quantizeImageAlgo'.
-Calculation of the color value in each "container".
+Calculation of the new color value in each "container".
+
+# Calculation of pi:
+    for color in range(z[inx], z[inx + 1] + 1):
+        value = value + (color * hist[color])
+        sum = sum + hist[color]
 '''
 
 
 def __calc_pi(inx: int, z: np.ndarray, hist: np.ndarray) -> int:
-    value = sum = 0
-    for color in range(z[inx], z[inx + 1] + 1):
-        value = value + (color * hist[color])
-        sum = sum + hist[color]
+    value = np.dot(np.arange(z[inx], z[inx + 1] + 1), hist[z[inx]:z[inx + 1] + 1])
+    sum = np.sum(hist[z[inx]:z[inx + 1] + 1])
     if sum == 0:
         return 0
     return np.rint(value / sum)

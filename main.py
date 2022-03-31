@@ -53,11 +53,12 @@ if __name__ == '__main__':
     print("Your OpenCV version is: " + cv2.__version__)
     # # img_path = 'beach.jpg'
     # # img_path = 'pout.tif'
-    img_path = 'Lenna.png'
-    # img_path = 'gray.jpg'
+    # img_path = 'images/Lenna.png'
+    # img_path = 'images/gray.jpg'
+    img_path = 'images/test.jpg'
 
     # # Basic read and display
-    img = imReadAndConvert(img_path, 2)
+    # img = imReadAndConvert(img_path, 2)
     # imDisplay(img_path, LOAD_GRAY_SCALE)
     # im = imReadAndConvert(img_path, 2)
     # imDisplay(img_path, LOAD_RGB)
@@ -68,8 +69,18 @@ if __name__ == '__main__':
     # im = imReadAndConvert(img_path, 2)
     # hsitogramEqualizeTest(im)
 
-    im = imReadAndConvert('dog.jpg', 2)
-    quantizeImageTest(im, 3, 10)
+    im = imReadAndConvert('images/dog.jpg', 2)
+    quantizeImageTest(im, 3, 20)
+
+    # res = imReadAndConvert('beach.jpg', 2)
+    # print(np.array(np.rint(res * 255.0) / 255.0).flatten().max())
+    # print(np.array(np.rint(res * 255.0) / 255.0).flatten().min())
+    # res = transformRGB2YIQ(res)
+    # print(np.array(np.rint(res * 255.0) / 255.0).flatten().max())
+    # print(np.array(np.rint(res * 255.0) / 255.0).flatten().min())
+    # res = transformYIQ2RGB(res)
+    # print(np.array(np.rint(res * 255.0) / 255.0).flatten().max())
+    # print(np.array(np.rint(res * 255.0) / 255.0).flatten().min())
 
     # gammaDisplay('fall.jpg', 2)
     # gammaDisplay('Lenna.png', 1)
