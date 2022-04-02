@@ -74,11 +74,11 @@ if __name__ == '__main__':
 
     # imDisplay(img_path, 2)
 
-    # im = imReadAndConvert(img_path, 2)
-    # hsitogramEqualizeTest(im)
+    im = imReadAndConvert('images/gray.jpg', 1)
+    hsitogramEqualizeTest(im)
 
-    im = imReadAndConvert('images/dark.jpg', 2)
-    quantizeImageTest(im, 3, 20)
+    # im = imReadAndConvert('images/dark.jpg', 2)
+    # quantizeImageTest(im, 3, 20)
 
     # res = imReadAndConvert('beach.jpg', 2)
     # print(np.array(np.rint(res * 255.0) / 255.0).flatten().max())

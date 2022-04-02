@@ -138,7 +138,7 @@ def transformRGB2YIQ(imgRGB: np.ndarray) -> np.ndarray:
         res = np.dot(imgRGB.reshape(-1, 3), yiq_from_rgb.transpose()).reshape(backup_shape)
         # We need to multiply by 255.0 and then round to the nearest Integer number (with 'np.rint' func) and then
         # normalize again (divide by 255.0) in order to allow the image to contain a completely white color (255)
-        return np.rint(res * 255.0) / 255.0
+        return res
     except (Exception,):
         print("An exception occurred: can't convert the image from RGB to YIQ")
         exit(1)
@@ -181,7 +181,7 @@ def transformYIQ2RGB(imgYIQ: np.ndarray) -> np.ndarray:
         res = np.dot(imgYIQ.reshape(-1, 3), np.linalg.inv(yiq_from_rgb).transpose()).reshape(backup_shape)
         # We need to multiply by 255.0 and then round to the nearest Integer number (with 'np.rint' func) and then
         # normalize again (divide by 255.0) in order to allow the image to contain a completely white color (255)
-        return np.clip(np.rint(res * 255.0) / 255.0, 0, 1)
+        return np.clip(res, 0, 1)
     except (Exception,):
         print("An exception occurred: can't convert the image from RGB to YIQ")
         exit(1)

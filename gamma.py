@@ -35,7 +35,7 @@ def on_trackbar(val):
 
 '''
 'gammaDisplay' method:
-    performs gamma correction on an image with a given 'gamma'.
+performs gamma correction on an image with a given 'gamma'.
 '''
 
 
