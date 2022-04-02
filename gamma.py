@@ -15,6 +15,12 @@ import cv2
 
 global img
 
+'''
+'on_trackbar' method:
+    Auxiliary method to 'gammaDisplay'.
+    Performs a recalculation of the gamma function whenever the value of the slider changes.
+'''
+
 
 def on_trackbar(val):
     gamma = val / 100
@@ -25,6 +31,12 @@ def on_trackbar(val):
     title = 'Gamma Correction (current gamma value = %.2f)' % float("{:.2f}".format(val / 100.0))
     cv2.setWindowTitle('Gamma Correction', title)
     cv2.imshow('Gamma Correction', new_img)
+
+
+'''
+'gammaDisplay' method:
+    performs gamma correction on an image with a given 'gamma'.
+'''
 
 
 def gammaDisplay(img_path: str, rep: int):

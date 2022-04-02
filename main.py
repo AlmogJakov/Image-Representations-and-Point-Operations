@@ -25,10 +25,16 @@ def quantizeImageTest(imOrig: np.ndarray, nQuant: int, nIter: int):
 
     # show result
     if len(image_list[len(image_list) - 1].shape) == 3:
-        plt.imshow(image_list[len(image_list) - 1])
+        # plt.imshow(image_list[len(image_list) - 1])
+        f, ax = plt.subplots(1, 2)
+        ax[0].imshow(image_list[0])
+        ax[1].imshow(image_list[len(image_list) - 1])
     else:
-        plt.imshow(image_list[len(image_list) - 1], cmap='gray')
-    plt.title("newImg")
+        # plt.imshow(image_list[len(image_list) - 1], cmap='gray')
+        f, ax = plt.subplots(1, 2)
+        ax[0].imshow(image_list[0], cmap='gray')
+        ax[1].imshow(image_list[len(image_list) - 1], cmap='gray')
+    plt.title("OldImg / newImg")
     plt.show()
 
 
@@ -51,11 +57,11 @@ def hsitogramEqualizeTest(imOrig: np.ndarray):
 if __name__ == '__main__':
     print_hi('PyCharm')
     print("Your OpenCV version is: " + cv2.__version__)
-    # # img_path = 'beach.jpg'
+    img_path = 'beach.jpg'
     # # img_path = 'pout.tif'
     # img_path = 'images/Lenna.png'
     # img_path = 'images/gray.jpg'
-    img_path = 'images/test.jpg'
+    # img_path = 'images/test.jpg'
 
     # # Basic read and display
     # img = imReadAndConvert(img_path, 2)
@@ -66,10 +72,12 @@ if __name__ == '__main__':
     # # im = transformRGB2YIQ(im)
     # # im = transformYIQ2RGB(im)
 
+    # imDisplay(img_path, 2)
+
     # im = imReadAndConvert(img_path, 2)
     # hsitogramEqualizeTest(im)
 
-    im = imReadAndConvert('images/dog.jpg', 2)
+    im = imReadAndConvert('images/dark.jpg', 2)
     quantizeImageTest(im, 3, 20)
 
     # res = imReadAndConvert('beach.jpg', 2)
