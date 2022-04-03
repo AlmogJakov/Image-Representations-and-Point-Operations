@@ -71,7 +71,7 @@ Python basic syntax and implementation of some of its image processing facilitie
 
 <h2>Gamma Tool</h2>
 
-| Gamma Tool (85) | Gamma Tool (110) | Gamma Tool (200) |
+| Gamma Tool (0.85 VALUE) | Gamma Tool (1.1 VALUE) | Gamma Tool (2.0 VALUE) |
 | ------------- | ------------- | ------------- |
 | <p align="center"><img src="https://github.com/AlmogJakov/Image-Representations-and-Point-Operations/blob/main/demo/gamma_85.jpg"/></p>  | <p align="center"><img src="https://github.com/AlmogJakov/Image-Representations-and-Point-Operations/blob/main/demo/gamma_110.jpg"/></p>  | <p align="center"><img src="https://github.com/AlmogJakov/Image-Representations-and-Point-Operations/blob/main/demo/gamma_200.jpg"/></p>  |
 
