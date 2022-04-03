@@ -1,5 +1,5 @@
 # Image-Representations-and-Point-Operations
-Python basic syntax and implementation of some of its image processing facilities (Histogram equalization, Optimal image quantization, Gamma Correction, etc.).
+Python implementations of image processing facilities (Histogram equalization, Optimal image quantization, Gamma Correction, etc.).
 
 -----
 
@@ -19,7 +19,7 @@ Python basic syntax and implementation of some of its image processing facilitie
      
 <h2>Image Reading & Display</h2>
 
-| Read As RGB (Original) | Read As Grayscale |
+| Read As RGB (Original Image) | Read As Grayscale |
 | ------------- | ------------- |
 | <p align="center"><img src="https://github.com/AlmogJakov/Image-Representations-and-Point-Operations/blob/main/demo/colored.png"/></p>  | <p align="center"><img src="https://github.com/AlmogJakov/Image-Representations-and-Point-Operations/blob/main/demo/gray.png"/></p>  |
 
